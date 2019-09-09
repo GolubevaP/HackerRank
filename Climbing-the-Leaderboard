@@ -1,0 +1,208 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+vector<string> split_string(string);
+
+// для того, чтоб использовать эту функцию не только для векторов,
+// но и для списков, например, используем шаблоны
+
+/* Iter - указатель/итератор значения типа Data*/
+template<typename Iter, typename Data>
+/* Функция ищет место point в ОТСОРТИРОВАННОМ ПО УБЫВАНИЮ диапазоне значений типа Data
+Iter it_beginScores - итератор, адресующий первый элемент диапазона для проверки (значений типа Data)
+Iter it_endScore - итератор, адресующий расположение за последним элементом диапазона для проверки (значений типа Data)
+Data point - значение, место которого ищем в диапазоне
+Возвращает итератор, адресующий на место point в заданном диапазоне */
+Iter binarySearch(Iter it_beginScores, Iter it_endScore, Data point)
+{
+	// если point больше первого элемента
+	if (point > *it_beginScores)
+	{
+		// его место в самом начале проверяемого диапазона
+		return it_beginScores;
+	}
+	// если point меньше последнего элемента
+	else if (*(it_endScore - 1) > point)
+	{
+		// его место в самом конце проверяемого диапазона
+		return it_endScore;
+	}
+	// иначе
+	else
+	{
+		// начало проверяемого диапазона
+		auto it_begin = it_beginScores;
+		// конец проверяемого диапазона
+		auto it_end = it_endScore;
+
+		do
+		{
+			// середина проверяемого диапазона
+			auto it_middle = it_begin + (it_end - it_begin) / 2;
+
+			// если point больше срединного значения
+			if (point > *(it_middle))
+			{
+				// смещаем конец проверяемого диапазона в середину
+				it_end = it_middle;
+				// если левое значение больше point, место poinе в конце нового диапазона
+				if (*(it_end - 1) > point)
+					return it_end;
+				// если point равен левому знаечнию, это место для point
+				else if (*(it_end - 1) == point)
+					return it_end - 1;
+			}
+			// если серединное значение больше point
+			else if (*(it_middle) > point)
+			{
+				// смещаем начало проверяемого диапазона в середину
+				it_begin = it_middle + 1;
+				// если point больше или равен правому значению, это место для point
+				if (point >= *(it_begin))
+					return it_begin;
+			}
+			// если point равен серединному значению, это место для point
+			else
+			{
+				return (it_middle);
+			}
+
+			// если конец проверяемого диапазона раньше его начала, возвращаем адрес за проверяемыми значениями
+			// далее он преобразуется в -1
+			if ((it_end - it_begin) < 0)
+			{
+				return it_endScore + 1;
+			}
+
+		//} while (((it_endScore-it_begin) > 0) || ((it_end - it_beginScores) > 0));
+		// почему-то эту строку hackerrank не может закомпилить, а в VS 2017 все ок, поэтому там проверяла так:
+		} while (1);
+	}
+}
+
+// Complete the climbingLeaderboard function below.
+vector<int> climbingLeaderboard(vector<int> scores, vector<int> alice) 
+{
+	// вектор, в который запишем места Элис в турнирной таблице
+	vector<int> alice_score;
+
+	// зададим адреса первого элемента вектора scores для проверки
+	auto it_scoresBegin = scores.begin();
+	// зададим адрес последнего элемента,
+	// преобразовав вектор score, убрав все дублирующиеся элементы
+	// так как на места в турнирной таблице они не влияют
+	auto it_scoresEnd = unique(it_scoresBegin, scores.end());
+
+	auto it_aliceEnd = alice.end();
+	for (auto it_alice = alice.begin(); it_alice != it_aliceEnd; it_alice++)
+	{
+		// подаем начало и конец диапазона для проверки, и значение, место которого ищем
+		/* здесь начало диапазона каждый раз подаем одинаковое, а конец смещаем.
+		Так как значения в векторе alice отсортированны по возрастанию, 
+		то каждое следующее место alice в score будет не правее предыдущего, 
+		значит проверять значения правее возвращаемого функцией binarySearch нет смысла*/
+		auto it_newEnd = binarySearch(it_scoresBegin, it_scoresEnd, *it_alice);
+		
+		// находим разницу между концом проверенного диапазона и местом для вставки значения *it_alice
+		int success = it_scoresEnd - it_newEnd;
+		// если возвращенный адрес оказался больше (правее)
+		if (success < 0)
+			// в вектор результатов Элис запишем -1
+			alice_score.push_back(success);
+			// если возвращенный адрес оказался меньше (левее)
+		else if (success > 0)
+			// он станет новым концом диапазона для проверки
+			it_scoresEnd = it_newEnd;
+		// если адреса оказались равны, подаем тот же адрес конца
+
+		// запоминаем результат Элис: положение в векторе + 1 (так как отсчет элементов в векторе идет с 0)
+		alice_score.push_back(it_newEnd - it_scoresBegin + 1);
+	}
+
+	return alice_score;
+}
+
+int main()
+{
+    ofstream fout(getenv("OUTPUT_PATH"));
+
+    int scores_count;
+    cin >> scores_count;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    string scores_temp_temp;
+    getline(cin, scores_temp_temp);
+
+    vector<string> scores_temp = split_string(scores_temp_temp);
+
+    vector<int> scores(scores_count);
+
+    for (int i = 0; i < scores_count; i++) {
+        int scores_item = stoi(scores_temp[i]);
+
+        scores[i] = scores_item;
+    }
+
+    int alice_count;
+    cin >> alice_count;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    string alice_temp_temp;
+    getline(cin, alice_temp_temp);
+
+    vector<string> alice_temp = split_string(alice_temp_temp);
+
+    vector<int> alice(alice_count);
+
+    for (int i = 0; i < alice_count; i++) {
+        int alice_item = stoi(alice_temp[i]);
+
+        alice[i] = alice_item;
+    }
+
+    vector<int> result = climbingLeaderboard(scores, alice);
+
+    for (int i = 0; i < result.size(); i++) {
+        fout << result[i];
+
+        if (i != result.size() - 1) {
+            fout << "\n";
+        }
+    }
+
+    fout << "\n";
+
+    fout.close();
+
+    return 0;
+}
+
+vector<string> split_string(string input_string) {
+    string::iterator new_end = unique(input_string.begin(), input_string.end(), [] (const char &x, const char &y) {
+        return x == y and x == ' ';
+    });
+
+    input_string.erase(new_end, input_string.end());
+
+    while (input_string[input_string.length() - 1] == ' ') {
+        input_string.pop_back();
+    }
+
+    vector<string> splits;
+    char delimiter = ' ';
+
+    size_t i = 0;
+    size_t pos = input_string.find(delimiter);
+
+    while (pos != string::npos) {
+        splits.push_back(input_string.substr(i, pos - i));
+
+        i = pos + 1;
+        pos = input_string.find(delimiter, i);
+    }
+
+    splits.push_back(input_string.substr(i, min(pos, input_string.length()) - i + 1));
+
+    return splits;
+}
