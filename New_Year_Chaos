@@ -1,0 +1,122 @@
+// https://www.hackerrank.com/challenges/new-year-chaos/
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+vector<string> split_string(string);
+
+// Complete the minimumBribes function below.
+void minimumBribes(vector<int> q) 
+{
+	// переменная для подсчета перестановок
+    int result = 0;
+
+    int size = q.size();
+	// проходим по вектору с конца в начало
+    for (int i = size-1; i >= 0; --i)
+    {
+		// если текущее значение не на своем месте
+        if (q[i] != (i+1))
+        {
+			// для всех, кроме первого элемента вектора проверяем
+            if (i >= 1)
+            {
+				// значение левее текущего должно быть на этом месте?
+                if (q[i-1] == i+1)
+                {
+					// +1 перестановка
+                    result += 1;
+					// меняем местами текущее и левое значение
+                    swap(q[i], q[i-1]);
+					// переходим к следующему элементу вектора
+                    continue;
+                }
+            }
+
+			// если предыдущие проверки не прошли
+			// для всех, начиная с третьего элемента вектора проверяем
+            if (i >= 2) 
+            {
+				// значение на 2 элемента левее текущего должно быть на этом месте?
+                if (q[i-2] == i+1)
+                {
+					// +2 перестановки
+                    result += 2;
+					// проводим перестановку (312 swap-> 132 swap-> 123)
+                    swap(q[i-2], q[i-1]);
+                    swap(q[i-1], q[i]);
+					// переходим к следующему элементу вектора
+                    continue;
+                }
+            }
+            
+			// если предыдущие проверки не прошли, значит в векторе присутствует элемент,
+			// смещенный влево более чем на 2 элемента
+            cout << "Too chaotic\n";
+            return;
+        }
+    }
+	// выводим количество необходимых перестановок на экран
+    cout << result << "\n";
+    return;
+}
+
+int main()
+{
+    int t;
+    cin >> t;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    for (int t_itr = 0; t_itr < t; t_itr++) {
+        int n;
+        cin >> n;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+        string q_temp_temp;
+        getline(cin, q_temp_temp);
+
+        vector<string> q_temp = split_string(q_temp_temp);
+
+        vector<int> q(n);
+
+        for (int i = 0; i < n; i++) {
+            int q_item = stoi(q_temp[i]);
+
+            q[i] = q_item;
+        }
+
+        minimumBribes(q);
+    }
+
+    return 0;
+}
+
+vector<string> split_string(string input_string) {
+    string::iterator new_end = unique(input_string.begin(), input_string.end(), [] (const char &x, const char &y) {
+        return x == y and x == ' ';
+    });
+
+    input_string.erase(new_end, input_string.end());
+
+    while (input_string[input_string.length() - 1] == ' ') {
+        input_string.pop_back();
+    }
+
+    vector<string> splits;
+    char delimiter = ' ';
+
+    size_t i = 0;
+    size_t pos = input_string.find(delimiter);
+
+    while (pos != string::npos) {
+        splits.push_back(input_string.substr(i, pos - i));
+
+        i = pos + 1;
+        pos = input_string.find(delimiter, i);
+    }
+
+    splits.push_back(input_string.substr(i, min(pos, input_string.length()) - i + 1));
+
+    return splits;
+}
