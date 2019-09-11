@@ -4,59 +4,57 @@
 
 using namespace std;
 
-// Complete the sherlockAndAnagrams function below.
+list<string> getAllSubstrings(string str) {
+    
+    list<string> result;
+
+    int str_size = str.size();
+    // заполняем переменную всеми возможными подстроками строки str
+    for (int i = 0; i < str_size; i++) 
+    {
+        for (int j = 0; j < str_size - i; j++) 
+        {
+            // создаем переменную для подстроки, соответствующего размера
+            string sub_str(i+1, '0');
+            // копируем из str подстроку в sub_str
+            copy((str.begin() + j), (str.begin() + j + i + 1), sub_str.begin());
+            // сортируем полученную подстроку
+            sort(sub_str.begin(), sub_str.end());
+            // вставляем ее в список result
+            result.push_back(sub_str);
+        }
+    }
+    return result;
+}
+
 int sherlockAndAnagrams(string s)
 {
-	// количество неупорядоченных анаграммных пар подстрок
-	int total = 0;
+    int count = 0;
 
-	// размер строки s
-	int s_size = s.size();
+    list<string> subStrings;
+    // составляем все возможные подстроки
+    subStrings = getAllSubstrings(s);
 
-	// для всех непустых подстрок всех возможных размеров count
-	// (размеры: меньше размера строки s, но больше 0) проверим:
-	for (size_t count = 1; count < s_size; ++count)
-	{
-		// определяем подстроку "эталонную" (с ней будем сравнивать остальные)
-		// начиная с первого символа строки s
-		// (s_size - count) - символ, следующий за последним, от которого возьмем "эталонную" подстроку
-		// там начинается предпоследняя подстрока (размера count) строки s (размером s_size)
-		// последнюю не берем в "эталон", так как ее сравним со всеми "эталонными" и так
-		for (int i = 0; i < (s_size - count); ++i)
-		{
-			// массив символов для "эталонной" подстроки
-			char arr1[count];
-			s.copy(arr1, count, i);
+    // проверяем все подстроки из полученного списка
+    for (auto it_sample = subStrings.begin(); it_sample != prev(subStrings.end()); ++it_sample)
+    {
+        for (auto it_substr = next(it_sample); it_substr != prev(subStrings.end()); ++it_substr)
+        {
+            // если подстроки одного размера 
+            if ((*it_sample).size() == (*it_substr).size())
+            {
+                // сравниваем их
+                if (*it_sample == *it_substr) count++;
+            }
+            // иначе, выходим из внутреннего цикла
+            else
+            {
+                break;
+            }
+        }
+    }
 
-			// определяем подстроку для сравнения с "эталонной"
-			// начиная с символа, следующего за началом "эталонной" подстроки
-			// (s_size - count + 1) - символ, следующий за последним, от которого возьмем подстроку для сравнения с "эталоном"
-			// там начинается последняя подстрока (размера count) строки s (размером s_size)
-			// берем подстроки только те, что лежат правее начала текущей "эталонной", 
-			// так как все что левее уже сравнили как "эталон" с правой частью
-			for (int j = i + 1; j < (s_size - count + 1); ++j)
-			{
-				// массив символов для сравнения с "эталонной"
-				char arr2[count];
-				s.copy(arr2, count, j);
-				
-				// преобразуем массивы в строки
-				string str1(arr1), str2(arr2);
-				// обрезаем под размер count
-				str1.resize(count);
-				str2.resize(count);
-				// упорядочим строки
-				sort(str1.begin(), str1.end());
-				sort(str2.begin(), str2.end());
-
-				// проверим строки на "равенство"
-				if (str1 == str2)
-					total++;
-			}
-		}
-	}
-
-	return total;
+    return count;
 }
 
 int main()
