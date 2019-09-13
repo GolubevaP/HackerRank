@@ -8,11 +8,11 @@ list<string> getAllSubstrings(string str) {
     
     list<string> result;
 
-    int str_size = str.size();
+    auto str_size = str.size();
     // заполняем переменную всеми возможными подстроками строки str
-    for (int i = 0; i < str_size; i++) 
+    for (auto i = 0; i < str_size; i++) 
     {
-        for (int j = 0; j < str_size - i; j++) 
+        for (auto j = 0; j < str_size - i; j++) 
         {
             // создаем переменную для подстроки, соответствующего размера
             string sub_str(i+1, '0');
@@ -38,7 +38,7 @@ int sherlockAndAnagrams(string s)
     // проверяем все подстроки из полученного списка
     for (auto it_sample = subStrings.begin(); it_sample != prev(subStrings.end()); ++it_sample)
     {
-        for (auto it_substr = next(it_sample); it_substr != prev(subStrings.end()); ++it_substr)
+        for (auto it_substr = next(it_sample); it_substr != subStrings.end(); ++it_substr)
         {
             // если подстроки одного размера 
             if ((*it_sample).size() == (*it_substr).size())
