@@ -4,153 +4,93 @@
 
 using namespace std;
 
-vector<string> split_string(string);
-
-int deep_first_search(int city, vector<bool> &checked_cities, vector<vector<int>> &cities);
-
-/*
-int city, 
-vector<bool> &checked_cities, 
-vector<vector<int>> &cities
-*/
-int deep_first_search(int city, vector<bool> &checked_cities, vector<vector<int>> &cities)
+void deep_first_search(long city, long &roads, vector<bool> &checked_cities, map<long,vector<long>> &cities, bool flag = false)
 {
-    // количество дорог в соседние "непосещенные" города
-    int roads = 0;
+    // добавляем дорогу
+    if (!flag)
+    {
+        roads++;
+    }
+    
     // отмечаем "посещение текущего город city"
     checked_cities[city - 1] = true;
 
-    // проходим по списку дорог
-    for (int i = 0; i < cities.size(); ++i)
+    // проходим по списку дорог для текущего города
+    int city_roads = cities[city].size();
+    for(int i = 0; i < city_roads; ++i)
     {
+        long next_city = cities[city][i];
         // если дорога соединяет текущий город с еще "непосещенным"
-        // фиксируем новую дорогу
-        // проверяем дороги из нового города
-        if (cities[i][0] == city)
+        if(!checked_cities[next_city - 1])
         {
-            if (!checked_cities[cities[i][1] - 1])
-            {
-                roads++;
-                roads += deep_first_search(cities[i][1], checked_cities, cities);
-            }
-        }
-        else if (cities[i][1] == city)
-        {
-            if (!checked_cities[cities[i][0] - 1])
-            {
-                roads++;
-                roads += deep_first_search(cities[i][0], checked_cities, cities);
-            }
+            // проверяем дороги для следующего связанного города
+            deep_first_search(next_city, roads, checked_cities, cities);
         }
     }
-
-    return roads;
 }
 
 // Complete the roadsAndLibraries function below.
-long roadsAndLibraries(int n, int c_lib, int c_road, vector<vector<int>> cities)
+long roads_and_libraries(long n, long c_lib, long c_road, map<long,vector<long>> &cities)
 {
     // если библиотеки стоят дешевле дорог 
     if (c_lib <= c_road)
     {
         // строим в каждом городе по библиотеке и не тратимся на восстановление дорог
-        return (n * c_lib);
+        return n * c_lib;
     }
     else
     {
         // список городов - все "непосещенные" в начале
         vector<bool> checked_cities(n, false);
-        // количество библиотек
-        int libs = 0;
-        // количество дорог
-        int roads = 0;
+        
+        // дороги и библиотеки
+        long roads = 0; 
+        long libs = 0;
 
         // "посетим" все города с проверкой
         for (int i = 1; i <= n; ++i)
         {
             // если город еще не "посещали"
-            if (!checked_cities[i-1])
+            if (!checked_cities[i - 1])
             {
-                // "строим" в нем библиотеку
                 libs++;
-                // "строим" дороги во все соседние "непосещенные" города
-                roads += deep_first_search(i, checked_cities, cities);
+                deep_first_search(i, roads, checked_cities, cities, true);
             }
         }
-        // подсчитываем стоимость всех построенных библиотек и дорог
-        int result = c_lib * libs + c_road * roads;
-        return result;
+        // считаем стоимость всех дорог и библиотек
+        return (libs * c_lib + roads * c_road);
     }
 }
 
 int main()
 {
-    ofstream fout(getenv("OUTPUT_PATH"));
-
     int q;
     cin >> q;
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-    for (int q_itr = 0; q_itr < q; q_itr++) {
-        string nmC_libC_road_temp;
-        getline(cin, nmC_libC_road_temp);
+    map<long,vector<long>> cities;
+    long n, m, c_lib, c_road;
+    
+    for (int q_itr = 0; q_itr < q; q_itr++) 
+    {
 
-        vector<string> nmC_libC_road = split_string(nmC_libC_road_temp);
+        cin >> n >> m >> c_lib >> c_road;
 
-        int n = stoi(nmC_libC_road[0]);
+        cities.clear();
 
-        int m = stoi(nmC_libC_road[1]);
-
-        int c_lib = stoi(nmC_libC_road[2]);
-
-        int c_road = stoi(nmC_libC_road[3]);
-
-        vector<vector<int>> cities(m);
-        for (int i = 0; i < m; i++) {
-            cities[i].resize(2);
-
-            for (int j = 0; j < 2; j++) {
-                cin >> cities[i][j];
-            }
+        for(int  i = 0; i < m; ++i){
+            long u,v;
+            cin >> u >> v;
+            cities[u].push_back(v);
+            cities[v].push_back(u);
 
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
         }
 
-        long result = roadsAndLibraries(n, c_lib, c_road, cities);
+        long result = roads_and_libraries(n, c_lib, c_road, cities);
 
-        fout << result << "\n";
+        cout << result << endl;
     }
-
-    fout.close();
 
     return 0;
-}
-
-vector<string> split_string(string input_string) {
-    string::iterator new_end = unique(input_string.begin(), input_string.end(), [] (const char &x, const char &y) {
-        return x == y and x == ' ';
-    });
-
-    input_string.erase(new_end, input_string.end());
-
-    while (input_string[input_string.length() - 1] == ' ') {
-        input_string.pop_back();
-    }
-
-    vector<string> splits;
-    char delimiter = ' ';
-
-    size_t i = 0;
-    size_t pos = input_string.find(delimiter);
-
-    while (pos != string::npos) {
-        splits.push_back(input_string.substr(i, pos - i));
-
-        i = pos + 1;
-        pos = input_string.find(delimiter, i);
-    }
-
-    splits.push_back(input_string.substr(i, min(pos, input_string.length()) - i + 1));
-
-    return splits;
 }
